@@ -720,6 +720,14 @@ function init() {
   $('#btn-cancel').addEventListener('click', () => $('#peer-dialog').close());
   $('#btn-delete').addEventListener('click', deletePeer);
   $('#peer-password').addEventListener('input', () => { state.pwDirty = true; });
+  // RustDesk copies IDs grouped with spaces ("71 114 852"): drop them as typed or pasted.
+  $('#peer-form').elements.id.addEventListener('input', (e) => {
+    const input = e.target;
+    if (!/\s/.test(input.value)) return;
+    const caret = input.value.slice(0, input.selectionStart).replace(/\s+/g, '').length;
+    input.value = input.value.replace(/\s+/g, '');
+    input.setSelectionRange(caret, caret);
+  });
   $('#pw-toggle').addEventListener('click', async () => {
     const input = $('#peer-password');
     const show = input.type === 'password';

@@ -51,7 +51,8 @@ type webPeerInput struct {
 }
 
 func (in *webPeerInput) clean() error {
-	in.ID = strings.TrimSpace(in.ID)
+	// RustDesk shows and copies IDs grouped with spaces ("71 114 852").
+	in.ID = strings.Join(strings.Fields(in.ID), "")
 	if err := validateID(in.ID); err != nil {
 		return err
 	}

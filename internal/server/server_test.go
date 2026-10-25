@@ -276,8 +276,17 @@ func TestWebAPI(t *testing.T) {
 		t.Fatalf("after delete: %+v", list.Peers)
 	}
 
-	if code := e.json("POST", "/rx/api/peers", map[string]any{"id": "a b"}, nil); code != 400 {
+	if code := e.json("POST", "/rx/api/peers", map[string]any{"id": "a/b"}, nil); code != 400 {
 		t.Fatalf("invalid id: %d", code)
+	}
+
+	// IDs copied from RustDesk come grouped with spaces.
+	if code := e.json("POST", "/rx/api/peers", map[string]any{"id": " 71 114 852 "}, nil); code != 201 {
+		t.Fatalf("spaced id: %d", code)
+	}
+	e.json("GET", "/rx/api/peers", nil, &list)
+	if len(list.Peers) != 1 || list.Peers[0].ID != "71114852" {
+		t.Fatalf("spaced id stored as: %+v", list.Peers)
 	}
 }
 
