@@ -1,10 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#c2410c"/>
-  <rect x="11" y="20" width="42" height="32" rx="5" fill="#fff7ed"/>
-  <rect x="11" y="20" width="42" height="9" rx="4" fill="#fed7aa"/>
-  <rect x="20" y="11" width="5" height="15" rx="2.5" fill="#1f2937"/>
-  <rect x="39" y="11" width="5" height="15" rx="2.5" fill="#1f2937"/>
-  <circle cx="23" cy="39" r="5" fill="#c2410c"/>
-  <rect x="31" y="35" width="15" height="3.5" rx="1.75" fill="#9a3412"/>
-  <rect x="31" y="42" width="10" height="3.5" rx="1.75" fill="#fdba74"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f97316"/>
+      <stop offset="1" stop-color="#9a3412"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- stand -->
+  <path d="M156 400h200l30 52H126z" fill="#431407"/>
+  <!-- cards with staggered index tabs, back to front -->
+  <rect x="300" y="82" width="84" height="44" rx="12" fill="#fdba74"/>
+  <rect x="124" y="104" width="264" height="196" rx="24" fill="#fdba74"/>
+  <rect x="214" y="116" width="84" height="44" rx="12" fill="#fed7aa"/>
+  <rect x="106" y="140" width="300" height="208" rx="26" fill="#fed7aa"/>
+  <rect x="104" y="152" width="96" height="48" rx="14" fill="#fff7ed"/>
+  <rect x="88" y="180" width="336" height="216" rx="28" fill="#fff7ed"/>
+  <!-- axle and knobs -->
+  <rect x="96" y="384" width="320" height="28" rx="14" fill="#1c1917"/>
+  <circle cx="92" cy="398" r="30" fill="#1c1917"/>
+  <circle cx="420" cy="398" r="30" fill="#1c1917"/>
+  <!-- monitor -->
+  <rect x="128" y="232" width="124" height="88" rx="16" fill="none" stroke="#c2410c" stroke-width="16"/>
+  <rect x="174" y="320" width="32" height="18" fill="#c2410c"/>
+  <rect x="152" y="334" width="76" height="16" rx="8" fill="#c2410c"/>
+  <!-- contact lines -->
+  <rect x="280" y="238" width="108" height="20" rx="10" fill="#9a3412"/>
+  <rect x="280" y="278" width="80" height="20" rx="10" fill="#fdba74"/>
+  <rect x="280" y="318" width="96" height="20" rx="10" fill="#fdba74"/>
 </svg>
