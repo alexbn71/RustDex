@@ -1,0 +1,16 @@
+services:
+  rustdex:
+    image: ghcr.io/alexbn71/rustdex:latest
+    container_name: rustdex
+    restart: unless-stopped
+    ports:
+      - "21114:21114"
+    environment:
+      RUSTDEX_ADMIN_USER: admin
+      # Leave empty to get a generated password in the log on first start
+      RUSTDEX_ADMIN_PASSWORD: change-me
+    volumes:
+      - rustdex-data:/data
+
+volumes:
+  rustdex-data:

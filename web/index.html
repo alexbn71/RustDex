@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>RustDex</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main id="login-view" class="login" hidden>
+    <form id="login-form" class="card login-card">
+      <img src="icon.svg" alt="" width="56" height="56">
+      <h1>RustDex</h1>
+      <p class="muted" data-i18n="loginSubtitle"></p>
+      <label class="field"><span data-i18n="username"></span>
+        <input name="username" autocomplete="username" required autofocus>
+      </label>
+      <label class="field"><span data-i18n="password"></span>
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <p class="error" id="login-error" hidden></p>
+      <button class="btn primary wide" type="submit" data-i18n="login"></button>
+    </form>
+  </main>
+
+  <div id="app-view" class="app" hidden>
+    <header class="topbar">
+      <div class="brand"><img src="icon.svg" alt="" width="28" height="28"><span id="book-name">RustDex</span></div>
+      <input id="search" class="search" type="search" autocomplete="off" data-i18n-placeholder="search">
+      <div class="top-actions">
+        <button id="btn-new" class="btn primary" type="button" data-i18n="newPeer"></button>
+        <button id="btn-tags" class="btn" type="button" data-i18n="manageTags"></button>
+        <button id="btn-logout" class="btn ghost" type="button" data-i18n="logout"></button>
+      </div>
+    </header>
+
+    <nav id="tag-filter" class="tag-filter" aria-label="Tag"></nav>
+
+    <section class="list">
+      <table id="peer-table">
+        <thead>
+          <tr>
+            <th data-sort="name" data-i18n="name"></th>
+            <th data-sort="id">ID</th>
+            <th data-sort="company" data-i18n="company"></th>
+            <th data-sort="contact" data-i18n="contact"></th>
+            <th data-i18n="tags"></th>
+            <th data-sort="lastSeen" data-i18n="status"></th>
+            <th class="col-actions"></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="empty" class="empty" hidden></p>
+    </section>
+
+    <footer class="footer"><span id="count"></span><span>RustDex <span id="version"></span></span></footer>
+  </div>
+
+  <dialog id="peer-dialog">
+    <form id="peer-form" novalidate>
+      <h2 id="peer-title"></h2>
+      <div class="grid">
+        <label class="field span2"><span data-i18n="name"></span>
+          <input name="alias" maxlength="200" autocomplete="off">
+        </label>
+        <label class="field"><span>ID *</span>
+          <input name="id" required maxlength="100" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="field"><label for="peer-password" data-i18n="password"></label>
+          <div class="input-group">
+            <input id="peer-password" name="password" type="password" maxlength="200" autocomplete="new-password" spellcheck="false">
+            <button type="button" id="pw-toggle" class="btn icon" data-i18n-title="showPassword"></button>
+            <button type="button" id="pw-copy" class="btn icon" data-i18n-title="copyPassword"></button>
+          </div>
+        </div>
+        <label class="field"><span data-i18n="company"></span>
+          <input name="company" maxlength="200" autocomplete="off">
+        </label>
+        <label class="field"><span data-i18n="contact"></span>
+          <input name="contact" maxlength="200" autocomplete="off">
+        </label>
+        <label class="field"><span data-i18n="email"></span>
+          <input name="email" type="email" maxlength="200" autocomplete="off">
+        </label>
+        <label class="field"><span data-i18n="phone"></span>
+          <input name="phone" type="tel" maxlength="200" autocomplete="off">
+        </label>
+        <label class="field span2"><span data-i18n="address"></span>
+          <input name="address" maxlength="200" autocomplete="off">
+        </label>
+        <div class="field span2"><label for="tag-input" data-i18n="tags"></label>
+          <div class="tag-editor" id="tag-editor">
+            <input id="tag-input" list="tag-list" autocomplete="off" data-i18n-placeholder="addTag">
+          </div>
+          <datalist id="tag-list"></datalist>
+        </div>
+        <label class="field span2"><span data-i18n="note"></span>
+          <textarea name="note" rows="3" maxlength="5000"></textarea>
+        </label>
+      </div>
+      <dl class="device" id="device-info" hidden></dl>
+      <p class="error" id="peer-error" hidden></p>
+      <div class="dialog-actions">
+        <button type="button" id="btn-delete" class="btn danger" data-i18n="delete"></button>
+        <span class="spacer"></span>
+        <button type="button" id="btn-cancel" class="btn" data-i18n="cancel"></button>
+        <button type="submit" class="btn primary" data-i18n="save"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="tags-dialog">
+    <div class="tags-manager">
+      <h2 data-i18n="manageTags"></h2>
+      <p class="muted" data-i18n="tagsHelp"></p>
+      <ul id="tags-list" class="tags-list"></ul>
+      <form id="tag-new" class="tag-new">
+        <input type="color" name="color" value="#2a8b8b" aria-label="color">
+        <input name="name" maxlength="50" required autocomplete="off" data-i18n-placeholder="newTag">
+        <button class="btn" type="submit" data-i18n="add"></button>
+      </form>
+      <div class="dialog-actions">
+        <span class="spacer"></span>
+        <button type="button" id="tags-close" class="btn primary" data-i18n="close"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
