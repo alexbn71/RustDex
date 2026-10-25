@@ -55,6 +55,9 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	client := "web"
 	if req.ID != "" {
 		client = "rustdesk " + req.ID
+		if err := s.st.RememberController(req.ID, time.Now().Unix()); err != nil {
+			log.Printf("remember controller %s: %v", req.ID, err)
+		}
 	}
 	token, err := s.newSession(client)
 	if err != nil {
@@ -126,6 +129,36 @@ func (s *Server) handleSysinfo(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleSysinfoVer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+}
+
+// handleAudit receives the audit records the controlled side posts. A
+// computer whose RustDesk only sets the ID server uses <ID server>:21114 as
+// API server, so this sees every authorized connection to it. When one of
+// our own clients (an ID that logged in to RustDex) connects to a computer
+// not yet in the book, the computer is added for the user to complete.
+func (s *Server) handleAudit(w http.ResponseWriter, r *http.Request) {
+	defer writeJSON(w, http.StatusOK, map[string]any{})
+	if r.PathValue("kind") != "conn" || !s.cfg.AutoAdd {
+		return
+	}
+	var req struct {
+		ID   string `json:"id"`
+		Peer []any  `json:"peer"`
+	}
+	// Only the record sent after authorization carries "peer": [id, name].
+	if decodeJSON(r, &req) != nil || len(req.Peer) == 0 || validateID(req.ID) != nil {
+		return
+	}
+	controller := anyString(req.Peer[0])
+	if ok, err := s.st.IsController(controller); err != nil || !ok {
+		return
+	}
+	added, err := s.st.AutoAddPeer(store.BookShared, req.ID, s.cfg.AutoAddTag)
+	if err != nil {
+		log.Printf("auto add %s: %v", req.ID, err)
+	} else if added {
+		log.Printf("added %s to the address book (connection from %s)", req.ID, controller)
+	}
 }
 
 func (s *Server) handleAbSettings(w http.ResponseWriter, r *http.Request) {

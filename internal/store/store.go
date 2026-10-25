@@ -84,6 +84,10 @@ var schema = []string{
 		last_seen  INTEGER NOT NULL DEFAULT 0,
 		sysinfo_at INTEGER NOT NULL DEFAULT 0
 	)`,
+	`CREATE TABLE IF NOT EXISTS controllers (
+		id         TEXT PRIMARY KEY,
+		last_login INTEGER NOT NULL
+	)`,
 }
 
 type Store struct {

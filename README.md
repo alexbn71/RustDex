@@ -51,6 +51,8 @@ The RustDex book carries the passwords, so connecting from the address book need
 
 *My address book* (the personal book) also works and is kept by RustDex, but it only stores password hashes, as the RustDesk client wants; it is not shown in the web UI.
 
+**Computers added automatically.** When you connect to a computer that is not in the address book yet, RustDex adds it with the tag `New` (`RUSTDEX_AUTO_ADD_TAG`): filter by that tag in the web UI, fill in the name and contact details, and remove the tag. This relies on the *remote* computer reporting the connection (the audit record RustDesk sends to its API server), so it works for computers whose RustDesk uses RustDex as API server. That includes those that only set your ID server: RustDesk then uses port 21114 on the same host as API server, so run RustDex on the ID server host at port 21114. Only connections made from a RustDesk client logged in to RustDex add computers; connections by anyone else are ignored.
+
 **Online status.** Computers whose own RustDesk is configured with this API server send a heartbeat: the web UI shows them as *Online* and fills in the computer name, user and operating system. The others show `—`.
 
 ## Configuration
@@ -65,6 +67,8 @@ The RustDex book carries the passwords, so connecting from the address book need
 | `RUSTDEX_BOOK_NAME` | `RustDex` | Name of the address book shown in the RustDesk client |
 | `RUSTDEX_SESSION_DAYS` | `30` | Login lifetime, extended while in use |
 | `RUSTDEX_TRUST_PROXY` | `false` | Behind a reverse proxy: take the client address from `X-Real-IP` / `X-Forwarded-For` (used by the login lockout) |
+| `RUSTDEX_AUTO_ADD` | `true` | Add the computers you connect to (see below) |
+| `RUSTDEX_AUTO_ADD_TAG` | `New` | Tag given to the computers added automatically; `-` for none |
 
 ### Data and backups
 

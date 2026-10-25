@@ -9,6 +9,8 @@ services:
       RUSTDEX_ADMIN_USER: admin
       # Leave empty to get a generated password in the log on first start
       RUSTDEX_ADMIN_PASSWORD: change-me
+      # Tag for computers added automatically when you connect to them
+      RUSTDEX_AUTO_ADD_TAG: New
     volumes:
       - rustdex-data:/data
 

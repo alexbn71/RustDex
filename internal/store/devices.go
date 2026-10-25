@@ -1,6 +1,9 @@
 package store
 
-import "strings"
+import (
+	"database/sql"
+	"strings"
+)
 
 // Device is what a RustDesk client configured with this API server reports
 // about itself (heartbeat and sysinfo). Only IDs present in an address book
@@ -81,6 +84,48 @@ func (s *Store) Devices() (map[string]Device, error) {
 		out[d.ID] = d
 	}
 	return out, rows.Err()
+}
+
+// RememberController records the RustDesk ID of a client that logged in with
+// the RustDex account: connections it makes can add peers automatically.
+func (s *Store) RememberController(id string, now int64) error {
+	_, err := s.db.Exec(`INSERT INTO controllers (id, last_login) VALUES (?, ?)
+		ON CONFLICT (id) DO UPDATE SET last_login = excluded.last_login`, id, now)
+	return err
+}
+
+func (s *Store) IsController(id string) (bool, error) {
+	var n int
+	err := s.db.QueryRow(`SELECT count(*) FROM controllers WHERE id = ?`, id).Scan(&n)
+	return n > 0, err
+}
+
+// AutoAddPeer adds id to the book with the given tag, unless it is already
+// there. What sysinfo reported about the device, if anything, is filled in.
+func (s *Store) AutoAddPeer(book, id, tag string) (added bool, err error) {
+	if _, err := s.GetPeer(book, id); err == nil {
+		return false, nil
+	} else if err != ErrNotFound {
+		return false, err
+	}
+	p := Peer{ID: id, Tags: []string{}}
+	if tag != "" {
+		p.Tags = []string{tag}
+	}
+	var osName string
+	err = s.db.QueryRow(`SELECT hostname, username, os FROM devices WHERE id = ?`, id).
+		Scan(&p.Hostname, &p.Username, &osName)
+	if err != nil && err != sql.ErrNoRows {
+		return false, err
+	}
+	p.Platform = platformFromOS(osName)
+	if err := s.InsertPeer(book, p); err != nil {
+		if err == ErrExists {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // platformFromOS maps the sysinfo OS string to the platform names the

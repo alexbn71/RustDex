@@ -86,9 +86,7 @@ func (s *Server) routes(static fs.FS) {
 	m.HandleFunc("/api/users", s.auth(emptyList))
 	m.HandleFunc("/api/peers", s.auth(emptyList))
 	m.HandleFunc("/api/device-group/accessible", s.auth(emptyList))
-	m.HandleFunc("POST /api/audit/{kind}", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]any{})
-	})
+	m.HandleFunc("POST /api/audit/{kind}", s.handleAudit)
 	m.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "not found")
 	})

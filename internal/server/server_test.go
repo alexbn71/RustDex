@@ -35,6 +35,8 @@ func newEnv(t *testing.T) *testEnv {
 		AdminPassword: "secret",
 		BookName:      "RustDex",
 		SessionTTL:    24 * time.Hour,
+		AutoAdd:       true,
+		AutoAddTag:    "New",
 	}
 	static := fstest.MapFS{"index.html": {Data: []byte("<html>rustdex</html>")}}
 	srv, err := New(cfg, st, static, "test")
@@ -324,6 +326,53 @@ func TestHeartbeatAndSysinfo(t *testing.T) {
 	p := list.Peers[0]
 	if p.LastSeen == 0 || p.Hostname != "PC-02" || p.Username != "luca" || p.Platform != "Windows" || p.Version != "1.4.3" {
 		t.Fatalf("device info: %+v", p)
+	}
+}
+
+func TestAutoAddFromAudit(t *testing.T) {
+	e := newEnv(t)
+	e.login() // our client is 123456789
+	e.token = ""
+
+	audit := func(body map[string]any) {
+		body["uuid"], body["conn_id"], body["session_id"] = "u", 1, 2
+		if code, _ := e.do("POST", "/api/audit/conn", body); code != 200 {
+			t.Fatalf("audit: %d", code)
+		}
+	}
+	// Before authorization (no "peer"), from a stranger, and file audits: ignored.
+	audit(map[string]any{"id": "444555666", "action": "new", "ip": "192.0.2.9"})
+	audit(map[string]any{"id": "444555666", "peer": []any{"999999999", "someone"}, "type": 0})
+	e.do("POST", "/api/audit/file", map[string]any{"id": "444555666", "peer": []any{"123456789", "me"}})
+	// Connection from our client: added once, with the tag.
+	audit(map[string]any{"id": "444555666", "peer": []any{"123456789", "me"}, "type": 0})
+	audit(map[string]any{"id": "444555666", "peer": []any{"123456789", "me"}, "type": 1})
+
+	e.login()
+	var list struct{ Peers []webPeer }
+	e.json("GET", "/rx/api/peers", nil, &list)
+	if len(list.Peers) != 1 || list.Peers[0].ID != "444555666" || len(list.Peers[0].Tags) != 1 || list.Peers[0].Tags[0] != "New" {
+		t.Fatalf("auto added: %+v", list.Peers)
+	}
+
+	// An existing entry is left alone.
+	e.json("PUT", "/rx/api/peers/444555666", map[string]any{"id": "444555666", "alias": "Done", "tags": []string{}}, nil)
+	e.token = ""
+	audit(map[string]any{"id": "444555666", "peer": []any{"123456789", "me"}, "type": 0})
+	e.login()
+	e.json("GET", "/rx/api/peers", nil, &list)
+	if list.Peers[0].Alias != "Done" || len(list.Peers[0].Tags) != 0 {
+		t.Fatalf("existing entry changed: %+v", list.Peers[0])
+	}
+
+	// Disabled: nothing is added.
+	e.srv.cfg.AutoAdd = false
+	e.token = ""
+	audit(map[string]any{"id": "777888999", "peer": []any{"123456789", "me"}, "type": 0})
+	e.login()
+	e.json("GET", "/rx/api/peers", nil, &list)
+	if len(list.Peers) != 1 {
+		t.Fatalf("added while disabled: %+v", list.Peers)
 	}
 }
 
