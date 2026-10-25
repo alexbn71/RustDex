@@ -46,6 +46,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	if err := dropPrivileges(cfg.DataDir); err != nil {
+		return err
+	}
 	st, err := store.Open(cfg.DataDir, cfg.SecretKey)
 	if err != nil {
 		return err

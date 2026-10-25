@@ -69,12 +69,13 @@ The RustDex book carries the passwords, so connecting from the address book need
 | `RUSTDEX_TRUST_PROXY` | `false` | Behind a reverse proxy: take the client address from `X-Real-IP` / `X-Forwarded-For` (used by the login lockout) |
 | `RUSTDEX_AUTO_ADD` | `true` | Add the computers you connect to (see below) |
 | `RUSTDEX_AUTO_ADD_TAG` | `New` | Tag given to the computers added automatically; `-` for none |
+| `PUID` / `PGID` | `65532` | User and group that own the data folder and run the server (Unraid: `99` / `100`) |
 
 ### Data and backups
 
 Everything is in the data folder: `rustdex.db` (SQLite) and `secret.key`. Back up **both**: the database alone does not reveal the passwords, but it cannot be read back without the key either. If you set `RUSTDEX_SECRET_KEY`, keep it somewhere safe instead of the key file.
 
-The container runs as user `65532`. With a bind mount instead of a named volume, give that user write access to the folder (`chown -R 65532:65532 ./data`), or run the container with `user: "0:0"`.
+The container starts as root only to give the data folder to `PUID`:`PGID` (default `65532:65532`), then drops to that user, so bind-mounted folders created by root work too. On **Unraid** set `PUID=99` and `PGID=100` (nobody:users, like the other appdata folders). `PUID=0` keeps it running as root; starting it with `--user` skips the switch, and then that user must be able to write the folder.
 
 ## Security notes
 

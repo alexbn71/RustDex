@@ -56,7 +56,20 @@ jobs:
             http://127.0.0.1:21114/api/login | sed -E 's/.*"access_token":"([^"]+)".*/\1/')
           curl -sf -X POST -H "Authorization: Bearer $TOKEN" http://127.0.0.1:21114/api/ab/shared/profiles | grep -q '"name":"RustDex"'
           docker exec smoke /rustdex healthcheck
+          docker logs smoke 2>&1 | grep -q 'running as 65532:65532'
           docker rm -f smoke
+
+      - name: Root-owned bind mount with PUID/PGID (Unraid appdata)
+        run: |
+          sudo mkdir -p /tmp/appdata/rustdex && sudo chown root:root /tmp/appdata/rustdex
+          docker run -d --name bind -p 21114:21114 -e PUID=99 -e PGID=100 \
+            -v /tmp/appdata/rustdex:/data rustdex:ci
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:21114/healthz && break; sleep 1; done
+          curl -sf http://127.0.0.1:21114/healthz
+          docker logs bind 2>&1 | grep -q 'running as 99:100'
+          test "$(stat -c %u:%g /tmp/appdata/rustdex/rustdex.db)" = "99:100"
+          ! docker top bind -o pid,user | tail -n +2 | awk '{print $2}' | grep -qx root
+          docker rm -f bind
 
       - name: Image metadata
         id: meta
